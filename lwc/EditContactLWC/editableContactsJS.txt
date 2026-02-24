@@ -1,0 +1,58 @@
+import { LightningElement, api, wire, track } from 'lwc';
+import getContacts from '@salesforce/apex/ContactController.getContacts';
+import updateContacts from '@salesforce/apex/ContactController.updateContacts';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
+
+const COLUMNS = [
+    { label: 'Name', fieldName: 'Name' },
+    { label: 'Email', fieldName: 'Email' },
+    { label: 'Phone', fieldName: 'Phone', editable: true },
+    { label: 'Title', fieldName: 'Title', editable: true }
+];
+
+export default class EditableContacts extends LightningElement {
+    @api recordId; // Account Id
+    @track contacts;
+    columns = COLUMNS;
+    draftValues = [];
+
+    wiredResult;
+
+    @wire(getContacts, { accountId: '$recordId' })
+    wiredContacts(result) {
+        this.wiredResult = result;
+        if (result.data) {
+            this.contacts = result.data;
+        } else if (result.error) {
+            this.showToast('Error', result.error.body.message, 'error');
+        }
+    }
+
+    async handleSave(event) {
+        const updatedFields = event.detail.draftValues;
+
+        try {
+            await updateContacts({ contactsToUpdate: updatedFields });
+
+            this.showToast('Success', 'Contacts updated successfully', 'success');
+
+            this.draftValues = [];
+
+            await refreshApex(this.wiredResult);
+
+        } catch (error) {
+            this.showToast('Error', error.body.message, 'error');
+        }
+    }
+
+    showToast(title, message, variant) {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title,
+                message,
+                variant
+            })
+        );
+    }
+}
