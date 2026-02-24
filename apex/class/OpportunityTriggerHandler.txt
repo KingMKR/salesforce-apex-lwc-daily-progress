@@ -1,0 +1,70 @@
+/* Whenever Opportunity Stage is updated to Closed Won, perform the following:
+Requirements:
+Create one Contact Role record per Opportunity
+Role → Decision Maker
+Contact → Primary Contact of the related Account
+Update Account Field:
+Last_Won_Opportunity_Date__c → Today's Date*/
+
+public class OpportunityTriggerHandler{
+    public void afterUpdate(List<Opportunity> newOpplist,Map<Id,Opportunity> opportunityOldMap){
+        Set<Id> accIds=new Set<Id>();
+        Set<Id> oppIds=new Set<Id>();
+        for(Opportunity opp: newOpplist){
+            oldOpp=opportunityOldMap.get(opp.Id);
+            if(opp.StageName=='Closed-Won' && oldOpp.StageName!='Closed-Won' && opp.AccountId !=null){
+                oppIds.add(opp.Id);
+                accIds.add(opp.AccountId);
+            }
+        }
+        if(oppId.isEmpty()){ return;}
+        processedClosedWon(oppIds,accIds);
+    }
+
+    public void processedClosedWon(Set<Id> oppIds, Set<Id> accIds){
+
+        Map<Id,Opportunity> oppMap=new Map<Id,Opportunity>([Select Id,AccountId from Opportunity where Id in :oppIds with USER_MODE]);
+
+        Map<Id,Id> accPrimaryContactMap=new Map<Id,Id>();
+
+        for(Account acc: [Select Id,PrimaryContact from Account where Id in:accIds with USER_MODE]){
+            accPrimaryContactMap.put(acc.Id,PrimaryContact);
+        }
+
+        Set<Id> processedOpps=new Set<Id>();
+        for(OpportunityContactRole ocr: [Select Id,oppId from OpportunityContactRole where oppId in :oppIds with USER_MODE]){
+            processedOpps.add(ocr);
+        }
+
+        List<OpportunityContactRole> ocrList=new List<OpportunityContactRole>();
+        List<Account> accUpdateList=new List<Account>();
+
+        for(Id opp:oppIds){
+            if(processedOpps.contains(opp.Id)){ continue; }
+
+            Opportunity opp=oppMap.get(opp);
+            Id contactId=accPrimaryContactMap.get(opp.AccountId);
+
+            if(contactId != null){
+                ocrList.add(new OpportunityContactRole(
+                    OpportunityId=opp.Id,
+                    ContactId=contactId,
+                    Role='Decision Maker',
+                    IsPrimary=True));
+
+            }
+            accUpdateList.add(new Account(
+                Id=opp.AccountId,
+                Last_Won_Opportunity_Date=System.Today()
+            ));
+        }
+
+        if(!ocrList.isEmpty()){
+            insert ocrList;
+        }
+        if(!accUpdateList.isEmpty()){
+            insert accUpdateList;
+        }
+    }
+
+}
