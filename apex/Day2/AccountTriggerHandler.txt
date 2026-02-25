@@ -1,0 +1,46 @@
+public class AccountTriggerHandler{
+    public static void afterUpdate(List<Account> newAccList, Map<Id,Account> oldAccMap){
+        Set<Id> accIds = new Set<Id>();
+        for(Account acc: newAccList){
+            Account oldAcc = oldAccMap.get(acc.Id);
+
+            if(acc.OwnerId!=oldAcc.OwnerId){
+                accIds.add(acc.Id);
+            }
+        }
+
+        if(!accIds.isEmpty()){
+            processOppOwner(accIds);
+        }
+
+    }
+
+    public static void processOppOwner(Set<Id> accIds){
+        List<Opportunity> updateOppList=new List<Opportunity>();
+
+        List<Task> createTaskList=new List<Task>();
+
+        List<Opportunity> relatedOppList=[Select Id,AccountId,Account.OwnerId from Opportunity where AccountId in :accIds AND IsClosed=False];
+
+        for(Opportunity opp: relatedOppList){
+            updateOppList.add(new Opportunity(
+                Id=opp.Id,
+                OwnerId=opp.Account.OwnerId
+            ))
+
+            createTaskList.add(new Task(
+                Subject="New Account Assigned – Review Pending Opportunities",
+                Priority="High",
+                WhatId=opp.AccountId,
+                OwnerId=opp.Account.OwnerId
+            ));
+        }
+        if(updateOppList!=null){
+            update updateOppList;                
+        }
+        if(createTaskList!=null){
+            insert createTaskList;
+        }
+       
+    }
+}
