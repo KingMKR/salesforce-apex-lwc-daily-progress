@@ -1,0 +1,12 @@
+public class CaseRollupQueueable implements Queueable {
+
+    private Set<Id> accIds;
+
+    public CaseRollupQueueable(Set<Id> accIds) {
+        this.accIds = accIds;
+    }
+
+    public void execute(QueueableContext qc) {
+        CaseRollupService.updateCounts(accIds);
+    }
+}

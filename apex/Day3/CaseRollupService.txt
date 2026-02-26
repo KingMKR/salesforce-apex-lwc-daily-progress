@@ -1,0 +1,29 @@
+public class CaseRollupService {
+
+    public static void updateCounts(Set<Id> accIds) {
+
+        Map<Id, Integer> accCountMap = new Map<Id, Integer>();
+
+        for (AggregateResult ar : CaseSelector.getOpenCaseCounts(accIds)) {
+            accCountMap.put(
+                (Id) ar.get('accId'),
+                (Integer) ar.get('total')
+            );
+        }
+
+        List<Account> accUpdates = new List<Account>();
+
+        for (Id accId : accIds) {
+            accUpdates.add(new Account(
+                Id = accId,
+                Total_Open_Cases__c = accCountMap.containsKey(accId)
+                    ? accCountMap.get(accId)
+                    : 0
+            ));
+        }
+
+        if (!accUpdates.isEmpty()) {
+            update accUpdates;
+        }
+    }
+}

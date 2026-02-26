@@ -1,0 +1,48 @@
+public class CaseTriggerHandler {
+
+    public static void handleAfter(
+        List<Case> newList,
+        List<Case> oldList,
+        Boolean isInsert,
+        Boolean isUpdate,
+        Boolean isDelete,
+        Boolean isUndelete
+    ) {
+
+        Set<Id> accIds = new Set<Id>();
+
+        if (isInsert || isUndelete) {
+            for (Case c : newList) {
+                if (c.AccountId != null) accIds.add(c.AccountId);
+            }
+        }
+
+        if (isUpdate) {
+            for (Case c : newList) {
+                Case oldCase = oldListMap.get(c.Id);
+                if (
+                    c.AccountId != oldCase.AccountId ||
+                    c.Status != oldCase.Status
+                ) {
+                    if (c.AccountId != null) accIds.add(c.AccountId);
+                    if (oldCase.AccountId != null) accIds.add(oldCase.AccountId);
+                }
+            }
+        }
+
+        if (isDelete) {
+            for (Case c : oldList) {
+                if (c.AccountId != null) accIds.add(c.AccountId);
+            }
+        }
+
+        if (accIds.isEmpty()) return;
+
+        if (Limits.getQueueableJobs() < Limits.getLimitQueueableJobs() &&
+            accIds.size() > 200) {
+            System.enqueueJob(new CaseRollupQueueable(accIds));
+        } else {
+            CaseRollupService.updateCounts(accIds);
+        }
+    }
+}

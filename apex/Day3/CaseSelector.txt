@@ -1,0 +1,12 @@
+public class CaseSelector {
+
+    public static List<AggregateResult> getOpenCaseCounts(Set<Id> accIds) {
+        return [
+            SELECT AccountId accId, COUNT(Id) total
+            FROM Case
+            WHERE AccountId IN :accIds
+              AND Status != 'Closed'
+            GROUP BY AccountId
+        ];
+    }
+}
