@@ -1,0 +1,21 @@
+trigger SubscriberTrigger on Subscriber__c(After Insert,After Delete,After Undelete){
+	Set<Id> accIds=new Set<Id>();
+	
+	if(Trigger.IsInsert||Trigger.isUndelete){
+		for(Subscriber__c s:Trigger.new){
+			if(s.AccountId!=null){
+				accIds.add(s.AccountId);
+			}
+		}
+	}
+	
+	if(Trigger.isDelete){
+		for(Subscriber__c s: Trigger.old){
+			if(s.AccountId!=null){
+				accIds.add(s.AccountId);
+			}
+		}
+	}
+	
+	SubscriberServiceClass.updateCheck(accIds);
+}

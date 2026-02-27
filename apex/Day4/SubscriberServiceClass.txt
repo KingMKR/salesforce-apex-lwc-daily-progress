@@ -1,0 +1,29 @@
+/*MP: We have two objects Account and Subscriber, on Subscriber there is checkbox as Recent Subscriber, 
+the Subscriber which got added recently should have true value and other Subscriber should have value as false. 
+Also when Subscriber this Subscriber get deleted then other recent one should be checked as Recent Subscriber.
+*/
+
+public class SubscriberServiceClass{
+	public static void updateCheck(Set<Id> accIds){
+		List<Subscriber__c> subs=[Select Id,AccountId,CreatedDate from Subscriber__c where AccountId in :accIds Order By CreatedDate Desc];
+		
+		Map<Id,Boolean> flag=new Map<Id,Boolean>();
+		List<Account> updateList=new List<Account>();
+		
+		for(Subscriber__c s: subs){
+			if(!flag.containsKey(s.AccountId)){
+				updateList.add(new Account( Id=s.AccountId, Recent_Subscriber__c=True));
+				flag.put(s.AccountId,True);
+			}
+			else{
+				updateList.add(new Account(Id=s.AccountId,Recent_Subscriber__c=False));
+			}
+		}
+		
+		if(!updateList.isEmpty()){
+			update updateList;
+		}
+	}
+}
+
+
