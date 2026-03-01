@@ -1,0 +1,4 @@
+public class IntegrationResponse {
+    public Boolean success;
+    public String responseBody;
+}

@@ -1,0 +1,20 @@
+public class AccountIntegrationQueueable implements Queueable, Database.AllowsCallouts {
+
+    private List<Account> accList;
+    private Integer retryCount;
+    private static final Integer MAX_RETRIES = 3;
+
+    public AccountIntegrationQueueable(List<Account> accList, Integer retryCount){
+        this.accList = accList;
+        this.retryCount = retryCount;
+    }
+
+    public void execute(QueueableContext qc){
+
+        IntegrationResponse result = AccountIntegrationService.send(accList);
+
+        if(!result.success && retryCount < MAX_RETRIES){
+            System.enqueueJob(new AccountIntegrationQueueable(accList, retryCount + 1));
+        }
+    }
+}

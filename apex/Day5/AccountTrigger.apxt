@@ -1,0 +1,9 @@
+trigger AccountTrigger on Account (after insert, after update) {
+
+    if(Trigger.isAfter){
+
+        AccountTriggerHandler.handle(Trigger.new, Trigger.oldMap);
+
+    }
+
+}

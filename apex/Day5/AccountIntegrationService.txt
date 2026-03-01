@@ -1,0 +1,46 @@
+public class AccountIntegrationService {
+
+    public static IntegrationResponse send(List<Account> accList){
+
+        Http http = new Http();
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('callout:External_System_NC');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/json');
+
+        List<Map<String,Object>> payload = new List<Map<String,Object>>();
+
+        for(Account acc : accList){
+            payload.add(new Map<String,Object>{
+                'Id' => acc.Id,
+                'Name' => acc.Name,
+                'Industry' => acc.Industry,
+                'Rating' => acc.Rating
+            });
+        }
+
+        String body = JSON.serialize(payload);
+        req.setBody(body);
+
+        IntegrationResponse result = new IntegrationResponse();
+
+        try{
+            HttpResponse res = http.send(req);
+
+            result.success = res.getStatusCode() >= 200 && res.getStatusCode() < 300;
+            result.responseBody = res.getBody();
+
+            IntegrationLogger.log(body, res.getBody(),
+                result.success ? 'Success' : 'Failed', 0, null);
+
+        } catch(Exception ex){
+
+            result.success = false;
+            result.responseBody = ex.getMessage();
+
+            IntegrationLogger.log(body, null, 'Failed', 0, ex.getMessage());
+        }
+
+        return result;
+    }
+}

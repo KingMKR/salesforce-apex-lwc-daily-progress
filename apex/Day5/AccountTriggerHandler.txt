@@ -1,0 +1,19 @@
+public class AccountTriggerHandler {
+
+    public static void handle(List<Account> newList, Map<Id,Account> oldMap) {
+        List<Account> accountsToSend = new List<Account>();
+
+        for(Account acc : newList){
+            if(oldMap == null || acc.Name != oldMap.get(acc.Id).Name ||
+               acc.Industry != oldMap.get(acc.Id).Industry ||
+               acc.Rating != oldMap.get(acc.Id).Rating){
+
+                accountsToSend.add(acc);
+            }
+        }
+
+        if(!accountsToSend.isEmpty()){
+            System.enqueueJob(new AccountIntegrationQueueable(accountsToSend, 0));
+        }
+    }
+}
