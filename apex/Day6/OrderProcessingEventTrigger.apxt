@@ -1,0 +1,3 @@
+trigger OrderProcessingEventTrigger on Order_Processing_Event__e(after Insert){
+	OrderProcessingEventTriggerHandler.handle(Trigger.New);
+}

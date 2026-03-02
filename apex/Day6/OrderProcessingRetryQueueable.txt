@@ -1,0 +1,28 @@
+public class OrderProcessingRetryQueueable implements Queueable{
+	List<Order_Processing_Event__e> events;
+	Integer retryCount;
+	
+	public OrderProcessingRetryQueueable(List<Order_Processing_Event__e evts, Integer counts){
+		this.events=evts;
+		this.retryCount=counts;
+	}
+	
+	public void execute(QueueableContext qc){
+		List<Order_Processing_Event__e> retryEvent=new List<Order_Processing_Event__e>();
+		
+		for(Order_Processing_Event__e e: events){
+			try{
+			
+				OrderProcessingEventTriggerHandler.simulateCallout(e);
+			}
+			catch(exception ex){
+				if(retryCount<3){
+					retryEvent.add(e);
+				}
+		}
+		
+		if(!retryFailures.isEmpty() && retryCount < 3){
+            System.enqueueJob(new OrderProcessingRetryQueueable(retryFailures, retryCount + 1));
+        }
+	}
+}

@@ -1,0 +1,26 @@
+public class OrderProcessingEventTriggerHandler{
+	public static void handle(List<Order_Processing_Event__e> newList){
+		List<Order_Processing_Event__e> failedEvents=new List<Order_Processing_Event__e>();
+		
+		for(Order_Processing_Event__e e:newList){
+			try{
+				simulateCallout(e);
+			}
+			catch(exception ex){
+				failedEvents.add(ex);
+			}
+		}
+		
+		if(!failedEvents.is()){
+			System.enqueueJob(new OrderProcessingRetryQueueable(failedEvents,1));
+		
+		}
+		
+	}
+	
+	private static voic simulateCallout(List<Order_Processing_Event__e> e){
+		if(Math.mod(Crypto.getRandomInteger(), 2) == 0){
+            throw new CalloutException('Simulated Failure');
+        }
+	}
+}

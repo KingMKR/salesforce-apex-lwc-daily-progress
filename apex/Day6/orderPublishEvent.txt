@@ -1,0 +1,5 @@
+public class orderPublishEvent{
+	publi static void publishEvent(List<Order> orders){
+		orderEvent.publish(orders);
+	}
+}

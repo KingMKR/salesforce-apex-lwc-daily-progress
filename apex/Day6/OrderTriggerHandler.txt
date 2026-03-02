@@ -1,0 +1,22 @@
+public class OrderTriggerHandler{
+	public static void afterUpdate(List<Order> newList, Map<Id,Order> oldMap){
+	
+		List<Order> ordes=new List<Order>();
+		
+		if(Trigger.isInsert){
+			for(Order o:newList){
+				ordes.add(o);
+		if(Trigger.isUpdate){
+			for(Order o:newList){
+				Order oldOrder=oldMap.get(o.Id);
+				if(oldOrder.status!='Activated' && o.status=='Activated'){
+					ordes.add(o);
+				}
+			}
+		}
+		
+		if(ordes.isEmpty()){ return; }
+		
+		orderPublishEvent.publishEvent(ordes);
+	}
+}

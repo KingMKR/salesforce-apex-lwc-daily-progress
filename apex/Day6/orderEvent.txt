@@ -1,0 +1,17 @@
+public class orderEvent{
+	public static void publish(List<Order> orders){
+		List<Order_Processing_Event__e> events= new List<Order_Processing_Event__e>();
+		
+		for(Order o:orders){
+			events.add(new Order_Processing_Event__e(
+				OrderId__c=o.Id,
+				AccountId__c=o.AccountId,
+				Amount__c=o.Amount,
+				Status__c=o.status
+			));
+		}
+		
+		
+		EventBus.publish(events);
+	}
+}
