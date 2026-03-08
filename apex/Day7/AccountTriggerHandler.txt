@@ -1,0 +1,16 @@
+public class AccountTriggerHandler {
+    public static void handleOwnerChange(List<Account> newList, Map<Id,Account> oldMap){
+        Set<Id> accountIds = new Set<Id>();
+        Map<Id,Id> accountNewOwner = new Map<Id,Id>();
+        for(Account acc : newList){
+            if(acc.OwnerId != oldMap.get(acc.Id).OwnerId){
+                accountIds.add(acc.Id);
+                accountNewOwner.put(acc.Id, acc.OwnerId);
+            }
+        }
+        if(accountIds.isEmpty()){
+            return;
+        }
+        AccountService.processOwnerChange(accountIds, accountNewOwner);
+    }
+}

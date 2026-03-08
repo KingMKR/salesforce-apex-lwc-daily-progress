@@ -1,0 +1,30 @@
+public class AccountService {
+    public static void processOwnerChange(Set<Id> accountIds, Map<Id,Id> accountNewOwner){
+        List<Opportunity> oppsToUpdate = new List<Opportunity>();
+        List<Task> tasksToInsert = new List<Task>();
+        List<Opportunity> oppList = [
+            SELECT Id, OwnerId, AccountId, StageName
+            FROM Opportunity
+            WHERE AccountId IN :accountIds
+            AND IsClosed = FALSE
+        ];
+        for(Opportunity opp : oppList){
+            Id newOwnerId = accountNewOwner.get(opp.AccountId);
+            opp.OwnerId = newOwnerId;
+            oppsToUpdate.add(opp);
+            Task t = new Task();
+            t.OwnerId = newOwnerId;
+            t.WhatId = opp.Id;
+            t.Subject = 'Review Pending';
+            t.Status = 'Not Started';
+            t.Priority = 'Normal';
+            tasksToInsert.add(t);
+        }
+        if(!oppsToUpdate.isEmpty()){
+            update oppsToUpdate;
+        }
+        if(!tasksToInsert.isEmpty()){
+            insert tasksToInsert;
+        }
+    }
+}
