@@ -1,0 +1,98 @@
+public class ValidationUtility {
+
+    /*
+    OBJECT LEVEL SECURITY
+    */
+    public static void checkObjectAccess(){
+
+        if(!Schema.sObjectType.Opportunity.isUpdateable()){
+            throw new AuraHandledException(
+                'You do not have permission to edit Opportunity records.'
+            );
+        }
+
+    }
+
+    /*
+    RECORD LEVEL SECURITY
+    */
+    public static void checkRecordAccess(List<Opportunity> oppList){
+
+        Set<Id> oppIds = new Set<Id>();
+
+        for(Opportunity opp : oppList){
+            oppIds.add(opp.Id);
+        }
+
+        Map<Id,UserRecordAccess> accessMap =
+            new Map<Id,UserRecordAccess>(
+                [
+                    SELECT RecordId, HasEditAccess
+                    FROM UserRecordAccess
+                    WHERE UserId = :UserInfo.getUserId()
+                    AND RecordId IN :oppIds
+                ]
+            );
+
+        for(Opportunity opp : oppList){
+
+            if(!accessMap.containsKey(opp.Id) ||
+               !accessMap.get(opp.Id).HasEditAccess){
+
+                opp.addError(
+                    'You do not have edit access to this Opportunity.'
+                );
+            }
+
+        }
+
+    }
+
+    /*
+    FIELD LEVEL SECURITY + ALLOWED FIELD VALIDATION
+    */
+    public static void checkFieldAccess(
+        List<Opportunity> newList,
+        Map<Id,Opportunity> oldMap,
+        Set<String> allowedFields
+    ){
+
+        Map<String,Schema.SObjectField> fieldMap =
+            Schema.SObjectType.Opportunity.fields.getMap();
+
+        for(Opportunity newOpp : newList){
+
+            Opportunity oldOpp = oldMap.get(newOpp.Id);
+
+            for(String fieldName : fieldMap.keySet()){
+
+                Object newValue = newOpp.get(fieldName);
+                Object oldValue = oldOpp.get(fieldName);
+
+                if(newValue != oldValue){
+
+                    if(!allowedFields.contains(fieldName)){
+                        newOpp.addError(
+                            'You are not allowed to update field: '
+                            + fieldName
+                        );
+                    }
+
+                    Schema.DescribeFieldResult fieldDescribe =
+                        fieldMap.get(fieldName).getDescribe();
+
+                    if(!fieldDescribe.isUpdateable()){
+                        newOpp.addError(
+                            'No field access for: ' + fieldName
+                        );
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+}

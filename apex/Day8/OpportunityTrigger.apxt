@@ -1,0 +1,10 @@
+trigger OpportunityTrigger on Opportunity (before update) {
+
+    if(Trigger.isBefore && Trigger.isUpdate){
+        OpportunityTriggerHandler.validateAccess(
+            Trigger.new,
+            Trigger.oldMap
+        );
+    }
+
+}

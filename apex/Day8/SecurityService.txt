@@ -1,0 +1,19 @@
+public class SecurityService {
+
+    private static final Set<String> ALLOWED_FIELDS =
+        new Set<String>{'Amount','StageName','CloseDate'};
+
+    public static void validateOpportunityUpdate(
+        List<Opportunity> newList,
+        Map<Id,Opportunity> oldMap
+    ){
+
+        ValidationUtility.checkObjectAccess();
+
+        ValidationUtility.checkRecordAccess(newList);
+
+        ValidationUtility.checkFieldAccess(newList, oldMap, ALLOWED_FIELDS);
+
+    }
+
+}

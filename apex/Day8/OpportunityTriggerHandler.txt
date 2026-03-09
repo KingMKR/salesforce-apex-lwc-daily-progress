@@ -1,0 +1,12 @@
+public class OpportunityTriggerHandler {
+
+    public static void validateAccess(
+        List<Opportunity> newList,
+        Map<Id,Opportunity> oldMap
+    ){
+
+        SecurityService.validateOpportunityUpdate(newList, oldMap);
+
+    }
+
+}
