@@ -1,0 +1,35 @@
+public class LeadService{
+	public static void Assign(List<Lead> assignList){
+		
+		List<Lead_Assignment_Rule__mdt> rules=MetadataSelector.getRules();
+		
+		List<Lead_Assignment_Log__c> logs=new List<Lead_Assignment_Log__c>();
+		
+		
+		for(Lead lead:assignList){
+			Lead_Assignment_Rule__mdt matchedRule;
+			
+			for(Lead_Assignment_Rule__mdt rule: rules){
+			
+				Boolean countryMatch= lead.Country__c==rule.Country__c;
+				Boolean industryMatch=lead.Industry__c==rule.Industry__c;
+				Boolean sourceMatch=lead.Lead_Source__c==rule.Lead_Source__c;
+				
+				if(countryMatch && industryMatch && sourceMatch){
+					matchedRule=rule;
+					break;
+				}
+			}
+			
+			if(matchedRule!=null){
+				lead.ownerId=matchedRule.Owner__c;
+				
+				logs.add(AssignmentLogger.createLogs(lead,matchedRule));
+			}
+		}
+		
+		if(!logs.isEmpty()){
+			insert logs;
+		}
+	}
+}

@@ -1,0 +1,7 @@
+public class LeadTriggerHandler{
+	public static void afterInsert(List<Lead> newList){
+		if(newList.isEmpty()){ return; }
+		
+		LeadService.Assign(newList);
+	}
+}

@@ -1,0 +1,6 @@
+public class MetadataSelector{
+	public static void getRules(){
+		return[ Select Country__c,Industry__c,Lead_Source__c,Owner__c, Priority__c from Lead_Assignment_Rule__mdt order by Priority__c Asc];
+	}
+
+}

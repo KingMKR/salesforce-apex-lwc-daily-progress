@@ -1,0 +1,3 @@
+trigger LeadTrigger on Trigger(after Insert){
+	LeadTriggerHandler.afterInsert(Trigger.New);
+}
