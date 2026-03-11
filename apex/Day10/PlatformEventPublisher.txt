@@ -1,0 +1,17 @@
+public class PlatformEventPublisher {
+
+    public static Case_Escalation_Event__e createEvent(Case c){
+
+        Case_Escalation_Event__e evt =
+            new Case_Escalation_Event__e();
+
+        evt.CaseId__c = c.Id;
+        evt.AccountId__c = c.AccountId;
+        evt.OwnerId__c = c.OwnerId;
+        evt.EscalationTime__c = System.now();
+
+        return evt;
+
+    }
+
+}

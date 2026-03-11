@@ -1,0 +1,22 @@
+public class CaseEscalationBatch implements Database.Batchable<SObject> {
+
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+
+        return Database.getQueryLocator([
+            SELECT Id, Status, Priority, OwnerId, AccountId, CreatedDate
+            FROM Case
+            WHERE Status IN ('New','Working')
+            AND CreatedDate <= :System.now().addHours(-24)
+        ]);
+
+    }
+
+    public void execute(Database.BatchableContext bc, List<Case> scope) {
+
+        CaseEscalationService.processEscalation(scope);
+
+    }
+
+    public void finish(Database.BatchableContext bc) {}
+
+}

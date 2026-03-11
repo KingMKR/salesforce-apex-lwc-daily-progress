@@ -1,0 +1,26 @@
+public class LoggingFramework {
+
+    public static void logEscalations(List<Case> cases){
+
+        List<Case_Escalation_Log__c> logs =
+            new List<Case_Escalation_Log__c>();
+
+        for(Case c : cases){
+
+            Case_Escalation_Log__c log =
+                new Case_Escalation_Log__c();
+
+            log.Case__c = c.Id;
+            log.Escalation_Time__c = System.now();
+            log.Status__c = 'Escalated';
+
+            logs.add(log);
+        }
+
+        if(!logs.isEmpty()){
+            insert logs;
+        }
+
+    }
+
+}

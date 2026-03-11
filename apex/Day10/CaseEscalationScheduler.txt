@@ -1,0 +1,12 @@
+public class CaseEscalationScheduler implements Schedulable {
+
+    public void execute(SchedulableContext sc) {
+
+        Database.executeBatch(
+            new CaseEscalationBatch(),
+            200
+        );
+
+    }
+
+}

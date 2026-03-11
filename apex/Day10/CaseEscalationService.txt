@@ -1,0 +1,44 @@
+public class CaseEscalationService {
+
+    public static void processEscalation(List<Case> cases){
+
+        List<Case> casesToUpdate = new List<Case>();
+        List<Task> tasksToInsert = new List<Task>();
+        List<Case_Escalation_Event__e> events = new List<Case_Escalation_Event__e>();
+
+        for(Case c : cases){
+
+            c.Priority = 'High';
+            c.Status = 'Escalated';
+            casesToUpdate.add(c);
+
+            Task t = new Task();
+            t.OwnerId = c.OwnerId;
+            t.WhatId = c.Id;
+            t.Subject = 'Escalated Case Review';
+            t.Status = 'Not Started';
+            t.Priority = 'High';
+
+            tasksToInsert.add(t);
+
+            events.add(
+                PlatformEventPublisher.createEvent(c)
+            );
+        }
+
+        if(!casesToUpdate.isEmpty()){
+            update casesToUpdate;
+        }
+
+        if(!tasksToInsert.isEmpty()){
+            insert tasksToInsert;
+        }
+
+        if(!events.isEmpty()){
+            EventBus.publish(events);
+        }
+
+        LoggingFramework.logEscalations(cases);
+    }
+
+}
