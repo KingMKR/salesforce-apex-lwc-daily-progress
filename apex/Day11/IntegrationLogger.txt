@@ -1,0 +1,26 @@
+public class IntegrationLogger {
+
+    public static Integration_Log__c createLog(
+        Id recordId,
+        String requestBody,
+        String responseBody,
+        String status,
+        Integer retryCount,
+        String errorMessage
+    ){
+
+        Integration_Log__c log =
+            new Integration_Log__c();
+
+        log.Record_Id__c = recordId;
+        log.Request_Body__c = requestBody;
+        log.Response_Body__c = responseBody;
+        log.Status__c = status;
+        log.Retry_Count__c = retryCount;
+        log.Error_Message__c = errorMessage;
+
+        return log;
+
+    }
+
+}
