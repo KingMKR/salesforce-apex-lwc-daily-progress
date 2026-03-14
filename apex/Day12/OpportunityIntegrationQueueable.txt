@@ -1,0 +1,91 @@
+public class OpportunityIntegrationQueueable
+implements Queueable, Database.AllowsCallouts {
+
+    private List<Opportunity> oppList;
+    private Integer retryCount;
+    private static final Integer MAX_RETRY = 3;
+
+    public OpportunityIntegrationQueueable(
+        List<Opportunity> oppList,
+        Integer retryCount
+    ){
+        this.oppList = oppList;
+        this.retryCount = retryCount;
+    }
+
+    public void execute(QueueableContext context){
+
+        Http http = new Http();
+        List<Integration_Log__c> logs = new List<Integration_Log__c>();
+        Boolean hasFailure = false;
+
+        for(Opportunity opp : oppList){
+
+            Map<String,Object> payload = new Map<String,Object>{
+                'opportunityId' => opp.Id,
+                'accountId' => opp.AccountId,
+                'amount' => opp.Amount,
+                'closeDate' => opp.CloseDate
+            };
+
+            String requestBody = JSON.serialize(payload);
+
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint('callout:External_API');
+            req.setMethod('POST');
+            req.setHeader('Content-Type','application/json');
+            req.setBody(requestBody);
+
+            try{
+
+                HttpResponse res = http.send(req);
+
+                String status =
+                    res.getStatusCode() == 200 ?
+                    'Success' : 'Failed';
+
+                if(status == 'Failed'){
+                    hasFailure = true;
+                }
+
+                logs.add(new Integration_Log__c(
+                    Record_Id__c = opp.Id,
+                    Request_Body__c = requestBody,
+                    Response_Body__c = res.getBody(),
+                    Status__c = status,
+                    Retry_Count__c = retryCount
+                ));
+
+            }catch(Exception e){
+
+                hasFailure = true;
+
+                logs.add(new Integration_Log__c(
+                    Record_Id__c = opp.Id,
+                    Request_Body__c = requestBody,
+                    Status__c = 'Failed',
+                    Retry_Count__c = retryCount,
+                    Error_Message__c = e.getMessage()
+                ));
+            }
+
+        }
+
+        if(!logs.isEmpty()){
+            insert logs;
+        }
+
+        if(hasFailure && retryCount < MAX_RETRY){
+
+            System.enqueueJob(
+                new OpportunityIntegrationQueueable(
+                    oppList,
+                    retryCount + 1
+                )
+            );
+
+        }
+
+    }
+
+}

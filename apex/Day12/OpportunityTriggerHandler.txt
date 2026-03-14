@@ -1,0 +1,32 @@
+public class OpportunityTriggerHandler {
+
+    public static void handleClosedWon(
+        List<Opportunity> newList,
+        Map<Id,Opportunity> oldMap
+    ){
+
+        List<Opportunity> oppList = new List<Opportunity>();
+
+        for(Opportunity opp : newList){
+
+            Opportunity oldOpp = oldMap.get(opp.Id);
+
+            if(opp.StageName == 'Closed Won' &&
+               oldOpp.StageName != 'Closed Won'){
+
+                oppList.add(opp);
+            }
+        }
+
+        if(!oppList.isEmpty()){
+            System.enqueueJob(
+                new OpportunityIntegrationQueueable(
+                    oppList,
+                    0
+                )
+            );
+        }
+
+    }
+
+}
