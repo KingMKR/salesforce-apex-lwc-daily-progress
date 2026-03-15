@@ -1,0 +1,19 @@
+public class AccountTriggerHandler extends BaseTriggerHandler {
+
+    public override void beforeInsert(){
+
+        for(Account acc : (List<Account>) Trigger.new){
+            if(acc.Description == null){
+                acc.Description = 'Default Description';
+            }
+        }
+
+    }
+
+    public override void afterUpdate(){
+
+        System.debug('Account updated');
+
+    }
+
+}

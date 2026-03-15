@@ -1,0 +1,20 @@
+public class OpportunityTriggerHandler extends BaseTriggerHandler {
+
+    public override void beforeUpdate(){
+
+        for(Opportunity opp : (List<Opportunity>) Trigger.new){
+
+            Opportunity oldOpp =
+                ((Map<Id,Opportunity>)Trigger.oldMap).get(opp.Id);
+
+            if(opp.StageName == 'Closed Won' &&
+               oldOpp.StageName != 'Closed Won'){
+
+                System.debug('Opportunity Closed Won');
+            }
+
+        }
+
+    }
+
+}
