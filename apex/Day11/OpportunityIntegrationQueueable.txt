@@ -1,11 +1,8 @@
 public class OpportunityIntegrationQueueable
 implements Queueable, Database.AllowsCallouts {
-
     private List<Opportunity> oppList;
     private Integer retryCount;
-
     private static final Integer MAX_RETRY = 3;
-
     public OpportunityIntegrationQueueable(
         List<Opportunity> oppList,
         Integer retryCount
@@ -13,40 +10,27 @@ implements Queueable, Database.AllowsCallouts {
         this.oppList = oppList;
         this.retryCount = retryCount;
     }
-
     public void execute(QueueableContext context){
-
         List<Integration_Log__c> logs =
             new List<Integration_Log__c>();
-
         Boolean success = true;
-
         try{
-
             Http http = new Http();
-
             for(Opportunity opp : oppList){
-
                 Map<String,Object> payload =
                     new Map<String,Object>{
-
                         'opportunityId' => opp.Id,
                         'accountId' => opp.AccountId,
                         'amount' => opp.Amount,
                         'closeDate' => opp.CloseDate
                     };
-
                 String body = JSON.serialize(payload);
-
                 HttpRequest req = new HttpRequest();
-
                 req.setEndpoint('callout:External_API_NC');
                 req.setMethod('POST');
                 req.setHeader('Content-Type','application/json');
                 req.setBody(body);
-
                 HttpResponse res = http.send(req);
-
                 logs.add(
                     IntegrationLogger.createLog(
                         opp.Id,
@@ -57,18 +41,13 @@ implements Queueable, Database.AllowsCallouts {
                         null
                     )
                 );
-
                 if(res.getStatusCode() != 200){
                     success = false;
                 }
             }
-
         }catch(Exception e){
-
             success = false;
-
             for(Opportunity opp : oppList){
-
                 logs.add(
                     IntegrationLogger.createLog(
                         opp.Id,
@@ -81,22 +60,16 @@ implements Queueable, Database.AllowsCallouts {
                 );
             }
         }
-
         if(!logs.isEmpty()){
             insert logs;
         }
-
         if(!success && retryCount < MAX_RETRY){
-
             System.enqueueJob(
                 new OpportunityIntegrationQueueable(
                     oppList,
                     retryCount + 1
                 )
             );
-
         }
-
     }
-
 }

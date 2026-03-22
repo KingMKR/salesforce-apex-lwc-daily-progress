@@ -1,0 +1,7 @@
+public class LeadTriggerHandler {
+    public void run(){
+        if(Trigger.isBefore && Trigger.isInsert){
+            LeadAssignmentService.assignLeads(Trigger.new);
+        }
+    }
+}

@@ -1,0 +1,34 @@
+public class LeadAssignmentService {
+    public static void assignLeads(List<Lead> leads){
+        List<Lead_Assignment_Rule__mdt> rules =
+            LeadAssignmentMetadataSelector.getRules();
+        List<Lead_Assignment_Log__c> logs = new List<Lead_Assignment_Log__c>();
+        for(Lead ld : leads){
+            Lead_Assignment_Rule__mdt matchedRule;
+            for(Lead_Assignment_Rule__mdt rule : rules){
+                Boolean countryMatch =
+                    isMatch(rule.Country__c, ld.Country);
+                Boolean industryMatch =
+                    isMatch(rule.Industry__c, ld.Industry);
+                Boolean sourceMatch =
+                    isMatch(rule.Lead_Source__c, ld.LeadSource);
+                if(countryMatch && industryMatch && sourceMatch){
+                    matchedRule = rule;
+                    break;
+                }
+            }
+            if(matchedRule != null){
+                ld.OwnerId = matchedRule.Owner__c;
+                logs.add(
+                    LeadAssignmentLogger.createLog(ld, matchedRule)
+                );
+            }
+        }
+        if(!logs.isEmpty()){
+            insert logs;
+        }
+    }
+    private static Boolean isMatch(String ruleValue, String leadValue){
+        return ruleValue == 'Any' || ruleValue == leadValue;
+    }
+}

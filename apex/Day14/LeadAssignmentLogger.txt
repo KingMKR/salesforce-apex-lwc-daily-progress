@@ -1,0 +1,12 @@
+public class LeadAssignmentLogger {
+    public static Lead_Assignment_Log__c createLog(
+        Lead ld,
+        Lead_Assignment_Rule__mdt rule
+    ){
+        Lead_Assignment_Log__c log = new Lead_Assignment_Log__c();
+        log.Lead__c = ld.Id;
+        log.Assigned_Owner__c = rule.Owner__c;
+        log.Rule_Name__c = rule.DeveloperName;
+        return log;
+    }
+}

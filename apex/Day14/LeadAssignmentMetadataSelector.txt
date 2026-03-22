@@ -1,0 +1,13 @@
+public class LeadAssignmentMetadataSelector {
+    public static List<Lead_Assignment_Rule__mdt> getRules(){
+        return [
+            SELECT Country__c,
+                   Industry__c,
+                   Lead_Source__c,
+                   Owner__c,
+                   Priority__c
+            FROM Lead_Assignment_Rule__mdt
+            ORDER BY Priority__c ASC
+        ];
+    }
+}
